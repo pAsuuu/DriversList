@@ -1,5 +1,3 @@
-// src/app/components/MainContent.jsx
-
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import {
@@ -23,6 +21,7 @@ import {
   FiCompass,
   FiCloudRain,
 } from 'react-icons/fi';
+import ChakraButtonLink from './ChakraButtonLink'; // Importer le composant personnalisé
 
 const MainContent = () => {
   const [upcomingRaces, setUpcomingRaces] = useState([]);
@@ -92,20 +91,21 @@ const MainContent = () => {
     fetchWeather();
   }, []);
 
-  // Fonction pour obtenir l'image du circuit
+  // Fonction pour obtenir le chemin de l'image du circuit
   const getCircuitImage = (circuitName) => {
-    // Vous pouvez ajouter plus de circuits avec leurs images correspondantes
     const circuitImages = {
-      'Albert Park Grand Prix Circuit': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Albert_Park_Grand_Prix_Circuit_-_Exterior_01.jpg/640px-Albert_Park_Grand_Prix_Circuit_-_Exterior_01.jpg',
-      'Silverstone Circuit': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/Silverstone_Circuit_-_Pit_Lane.jpg/640px-Silverstone_Circuit_-_Pit_Lane.jpg',
-      'Circuit de Monaco': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Monaco_Circuit_Saint_Denis.jpg/640px-Monaco_Circuit_Saint_Denis.jpg',
-      'Red Bull Ring': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Red_Bull_Ring_-_Pit_Lane.jpg/640px-Red_Bull_Ring_-_Pit_Lane.jpg',
-      'Circuit de Spa-Francorchamps': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Circuit_Spa-Francorchamps_pit_lane.jpg/640px-Circuit_Spa-Francorchamps_pit_lane.jpg',
-      'Circuit Gilles Villeneuve': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Circuit_Gilles_Villeneuve.jpg/640px-Circuit_Gilles_Villeneuve.jpg',
-      // Ajoutez d'autres circuits ici avec des images publiques
+      'Autódromo José Carlos Pace': '/brasil.jpg',
+      'Circuit of the Americas': '/cota.jpg',
+      'Las Vegas Strip Street Circuit': '/lasvegas.png',
+      'Autódromo Hermanos Rodríguez': '/mexico.jpg',
+      'Las Vegas Street Circuit': '/lasvegas.png',
+      'Losail International Circuit': '/qatar.jpg',
+      'Marina Bay Street Circuit': '/singapour.jpg',
+      // Ajoutez d'autres circuits ici si nécessaire
     };
 
-    return circuitImages[circuitName] || 'https://via.placeholder.com/300x150?text=Circuit';
+    // Retourne le chemin de l'image ou une image par défaut
+    return circuitImages[circuitName] || '/states.jpg';
   };
 
   // Couleurs pour le thème clair et sombre
@@ -145,6 +145,7 @@ const MainContent = () => {
                 objectFit="cover"
                 width="100%"
                 height="150px"
+                fallbackSrc="/states.jpg" // Image de repli si l'image principale ne charge pas
               />
               <Text fontSize="2xl" fontWeight="bold" color={textColor}>
                 {race.raceName}
@@ -183,6 +184,7 @@ const MainContent = () => {
                   src={`https:${weatherData.current.condition.icon}`}
                   alt={weatherData.current.condition.text}
                   boxSize="80px"
+                  fallbackSrc="/default-weather-icon.png" // Assurez-vous que cette image existe dans le dossier public
                 />
                 <Text fontSize="4xl" fontWeight="bold" ml={4}>
                   {weatherData.current.temp_c}°C
@@ -208,9 +210,7 @@ const MainContent = () => {
                 </Flex>
                 <Flex align="center">
                   <Icon as={FiCloudRain} boxSize={6} mr={2} />
-                  <Text fontSize="lg">
-                    Précipitations : {weatherData.current.precip_mm} mm
-                  </Text>
+                  <Text fontSize="lg">Précipitations : {weatherData.current.precip_mm} mm</Text>
                 </Flex>
                 <Flex align="center">
                   <Icon as={FiSunrise} boxSize={6} mr={2} />
@@ -243,14 +243,24 @@ const MainContent = () => {
       </Box>
 
       {/* Section des probabilités de victoire */}
-      <Box py={8}>
-        <Heading as="h2" size="lg" mb={6} textAlign="center" color="brand.500">
+      <Box py={8} textAlign="center">
+        <Heading as="h2" size="lg" mb={6} color="brand.500">
           Probabilités de Victoire
         </Heading>
 
-        <Center>
-          <Text color="gray.400">Les probabilités de victoire seront bientôt disponibles.</Text>
-        </Center>
+        <ChakraButtonLink
+          href="/probability-dashboard"
+          colorScheme="teal"
+          size={{ base: 'md', md: 'lg', lg: 'xl' }}  // Taille responsive pour différents écrans
+          fontSize={{ base: 'md', md: 'lg', lg: 'xl' }}  // Taille du texte ajustée
+          px={{ base: 6, md: 8, lg: 12 }}  // Padding horizontal responsive
+          py={{ base: 4, md: 6, lg: 8 }}  // Padding vertical responsive
+          leftIcon={<FiCompass />}
+          _hover={{ transform: 'scale(1.05)', boxShadow: 'lg' }}
+        >
+          Dashboard Techniques de Probabilités de Victoires
+        </ChakraButtonLink>
+
       </Box>
     </Box>
   );

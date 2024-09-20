@@ -33,4 +33,4 @@ export default async function handler(req, res) {
     console.error('Erreur lors de la lecture du fichier CSV:', error);
     res.status(500).json({ error: 'Erreur lors de la lecture du fichier CSV.' });
   }
-}
+} 

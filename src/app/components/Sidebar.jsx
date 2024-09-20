@@ -13,9 +13,6 @@ import {
   InputLeftElement,
   Input,
   Select,
-  IconButton,
-  useColorMode,
-  useColorModeValue,
   Badge,
   Accordion,
   AccordionItem,
@@ -28,7 +25,7 @@ import {
   useBreakpointValue,
   Divider,
 } from '@chakra-ui/react';
-import { SearchIcon, SunIcon, MoonIcon } from '@chakra-ui/icons';
+import { SearchIcon } from '@chakra-ui/icons';
 import axios from 'axios';
 import { FaCalendarAlt, FaExternalLinkAlt, FaNewspaper } from 'react-icons/fa';
 
@@ -46,13 +43,11 @@ const Sidebar = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
-  const { colorMode, toggleColorMode } = useColorMode();
-
-  // Couleurs basées sur le mode de couleur
-  const bgColor = useColorModeValue('white', 'gray.800');
-  const cardBgColor = useColorModeValue('gray.100', 'gray.700');
-  const hoverBgColor = useColorModeValue('gray.200', 'gray.600');
-  const textColor = useColorModeValue('gray.800', 'white');
+  // Couleurs fixes adaptées à votre design
+  const bgColor = 'gray.800'; // Couleur de fond sombre
+  const cardBgColor = 'gray.700'; // Couleur de fond des cartes
+  const hoverBgColor = 'gray.600'; // Couleur de fond au survol
+  const textColor = 'white'; // Couleur du texte
 
   // Taille responsive pour le Sidebar
   const sidebarWidth = useBreakpointValue({ base: '100%', md: '350px' });
@@ -158,33 +153,35 @@ const Sidebar = () => {
       : constructorStandings;
   }, [constructorStandings, searchTerm]);
 
+  // Fonction pour gérer le changement d'année
+  const handleYearChange = (e) => {
+    const year = e.target.value;
+    setSelectedYear(year);
+  };
+
   return (
     <Box
       bg={bgColor}
       color={textColor}
       p={6}
       shadow="xl"
-      h="100vh"
-      overflowY="auto"
+      h="100%" // Hauteur adaptée au conteneur parent
+      overflowY="auto" // Scroll vertical
       w={sidebarWidth}
-      position={{ base: 'relative', md: 'sticky' }}
-      top="0"
-      zIndex="1000"
-      borderRightWidth={{ base: '0', md: '1px' }}
-      borderRightColor={useColorModeValue('gray.200', 'gray.700')}
+      borderRightWidth="1px"
+      borderRightColor="gray.700"
+      overflowX="hidden" // Empêche le débordement horizontal
+      display="flex"
+      flexDirection="column"
     >
-      {/* Header avec le titre et le toggle du mode sombre */}
-      <HStack justifyContent="space-between" mb={6}>
-        <Text fontSize="3xl" fontWeight="bold" color="teal.500">
-          F1 Dashboard
-        </Text>
-        <IconButton
-          aria-label="Toggle dark mode"
-          icon={colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
-          onClick={toggleColorMode}
-          variant="ghost"
-          size="lg"
-        />
+      {/* Header avec le titre */}
+      <HStack justifyContent="space-between" mb={6} alignItems="center">
+        <HStack>
+          <Avatar src="/icons/f1-logo.svg" size="sm" bg="transparent" />
+          <Text fontSize="2xl" fontWeight="bold" color="red.500">
+            F1 Dashboard
+          </Text>
+        </HStack>
       </HStack>
 
       {/* Barre de recherche */}
@@ -198,19 +195,22 @@ const Sidebar = () => {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           bg={cardBgColor}
-          borderColor="gray.300"
+          borderColor="gray.500"
           _hover={{ borderColor: 'gray.400' }}
           focusBorderColor="teal.500"
+          borderRadius="md"
+          size="sm"
+          color={textColor}
         />
       </InputGroup>
 
       {/* Accordion pour les différentes sections */}
-      <Accordion allowToggle defaultIndex={[0]}>
+      <Accordion allowToggle flex="1">
         {/* Actualités F1 */}
         <AccordionItem>
           <AccordionButton>
             <Box flex="1" textAlign="left" fontWeight="semibold">
-              <HStack>
+              <HStack spacing={2}>
                 <FaNewspaper />
                 <Text>Actualités F1</Text>
               </HStack>
@@ -234,6 +234,7 @@ const Sidebar = () => {
                     borderRadius="md"
                     _hover={{ bg: hoverBgColor }}
                     align="start"
+                    spacing={3}
                   >
                     {article.urlToImage && (
                       <Image
@@ -242,7 +243,7 @@ const Sidebar = () => {
                         boxSize="60px"
                         objectFit="cover"
                         borderRadius="md"
-                        mr={3}
+                        flexShrink={0}
                       />
                     )}
                     <VStack align="start" spacing={1} flex="1">
@@ -251,7 +252,7 @@ const Sidebar = () => {
                           {article.title}
                         </Text>
                       </Link>
-                      <Text fontSize="sm" color="gray.500">
+                      <Text fontSize="sm" color="gray.400">
                         {new Date(article.publishedAt).toLocaleDateString()} - {article.source.name}
                       </Text>
                     </VStack>
@@ -268,8 +269,8 @@ const Sidebar = () => {
         <AccordionItem>
           <AccordionButton>
             <Box flex="1" textAlign="left" fontWeight="semibold">
-              <HStack>
-                <Avatar src="/icons/drivers.svg" size="sm" />
+              <HStack spacing={2}>
+                <Avatar src="/icons/drivers.svg" size="sm" bg="transparent" />
                 <Text>Classement Pilotes</Text>
               </HStack>
             </Box>
@@ -278,12 +279,15 @@ const Sidebar = () => {
           <AccordionPanel pb={6}>
             <Select
               value={selectedYear}
-              onChange={(e) => setSelectedYear(e.target.value)}
+              onChange={handleYearChange}
               mb={4}
               bg={cardBgColor}
-              borderColor="gray.300"
+              borderColor="gray.500"
               _hover={{ borderColor: 'gray.400' }}
               focusBorderColor="teal.500"
+              borderRadius="md"
+              size="sm"
+              color={textColor}
             >
               {years.map((year) => (
                 <option key={year} value={year} style={{ color: textColor }}>
@@ -300,26 +304,35 @@ const Sidebar = () => {
               <Text>Aucun pilote trouvé.</Text>
             ) : (
               <VStack spacing={4} align="stretch">
-                {filteredDrivers.map((driver, index) => (
+                {filteredDrivers.map((driver) => (
                   <HStack
-                    key={index}
+                    key={driver.Driver.driverId} // Utiliser une clé unique
                     p={3}
                     bg={cardBgColor}
                     borderRadius="md"
                     _hover={{ bg: hoverBgColor }}
                     justifyContent="space-between"
                   >
-                    <HStack>
+                    <HStack spacing={3}>
                       <Avatar
                         name={`${driver.Driver.givenName} ${driver.Driver.familyName}`}
-                        src={`https://www.gravatar.com/avatar/${driver.Driver.driverId}?d=identicon`}
+                        src={
+                          driver.Driver.imageUrl
+                            ? driver.Driver.imageUrl
+                            : `/avatars/drivers/${driver.Driver.driverId}.png` // Utiliser une image locale ou une autre source
+                        }
                         size="sm"
+                        bg="gray.600"
+                        onError={(e) => {
+                          e.target.onerror = null; // Empêche une boucle infinie
+                          e.target.src = '/avatars/drivers/default-driver.png'; // Image par défaut
+                        }}
                       />
                       <VStack align="start" spacing={0}>
                         <Text fontWeight="medium">
                           {driver.position}. {driver.Driver.givenName} {driver.Driver.familyName}
                         </Text>
-                        <Text fontSize="sm" color="gray.500">
+                        <Text fontSize="sm" color="gray.400">
                           {driver.Driver.nationality}
                         </Text>
                       </VStack>
@@ -342,8 +355,8 @@ const Sidebar = () => {
         <AccordionItem>
           <AccordionButton>
             <Box flex="1" textAlign="left" fontWeight="semibold">
-              <HStack>
-                <Avatar src="/icons/constructors.svg" size="sm" />
+              <HStack spacing={2}>
+                <Avatar src="/icons/constructors.svg" size="sm" bg="transparent" />
                 <Text>Classement Équipes</Text>
               </HStack>
             </Box>
@@ -358,20 +371,29 @@ const Sidebar = () => {
               <Text>Aucune équipe trouvée.</Text>
             ) : (
               <VStack spacing={4} align="stretch">
-                {filteredConstructors.map((team, index) => (
+                {filteredConstructors.map((team) => (
                   <HStack
-                    key={index}
+                    key={team.Constructor.constructorId} // Utiliser une clé unique
                     p={3}
                     bg={cardBgColor}
                     borderRadius="md"
                     _hover={{ bg: hoverBgColor }}
                     justifyContent="space-between"
                   >
-                    <HStack>
+                    <HStack spacing={3}>
                       <Avatar
                         name={team.Constructor.name}
-                        src={`https://www.gravatar.com/avatar/${team.Constructor.constructorId}?d=identicon`}
+                        src={
+                          team.Constructor.imageUrl
+                            ? team.Constructor.imageUrl
+                            : `/avatars/constructors/${team.Constructor.constructorId}.png` // Utiliser une image locale ou une autre source
+                        }
                         size="sm"
+                        bg="gray.600"
+                        onError={(e) => {
+                          e.target.onerror = null; // Empêche une boucle infinie
+                          e.target.src = '/avatars/constructors/default-team.png'; // Image par défaut
+                        }}
                       />
                       <Text fontWeight="medium">
                         {team.position}. {team.Constructor.name}
@@ -395,7 +417,7 @@ const Sidebar = () => {
         <AccordionItem>
           <AccordionButton>
             <Box flex="1" textAlign="left" fontWeight="semibold">
-              <HStack>
+              <HStack spacing={2}>
                 <FaCalendarAlt />
                 <Text>Calendrier</Text>
               </HStack>
@@ -419,17 +441,24 @@ const Sidebar = () => {
                     borderRadius="md"
                     _hover={{ bg: hoverBgColor }}
                     justifyContent="space-between"
+                    spacing={3}
                   >
-                    <HStack>
+                    <HStack spacing={3}>
                       <FaCalendarAlt color="teal" />
                       <VStack align="start" spacing={0}>
                         <Text fontWeight="medium">{race.raceName}</Text>
-                        <Text fontSize="sm" color="gray.500">
-                          {new Date(race.date).toLocaleDateString()} - {race.Circuit.Location.locality}, {race.Circuit.Location.country}
+                        <Text fontSize="sm" color="gray.400">
+                          {new Date(race.date).toLocaleDateString()} -{' '}
+                          {race.Circuit?.Location?.country || 'Pays inconnu'}
                         </Text>
                       </VStack>
                     </HStack>
-                    <Link href={`https://www.formula1.com/en/results.html/${race.season}/${race.round}/races/${race.raceName}.html`} isExternal>
+                    <Link
+                      href={`https://www.formula1.com/en/results.html/${race.season}/${race.round}/races/${encodeURIComponent(
+                        race.raceName
+                      )}.html`}
+                      isExternal
+                    >
                       <FaExternalLinkAlt color="teal" />
                     </Link>
                   </HStack>

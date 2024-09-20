@@ -1,16 +1,17 @@
-// pages/_document.js
+// pages/_document.jsx
 
 import { ColorModeScript } from '@chakra-ui/react';
 import Document, { Html, Head, Main, NextScript } from 'next/document';
-import theme from '../src/theme'; // Ajustez le chemin selon la structure de votre projet
+import theme from '../src/theme';
 
 class MyDocument extends Document {
   render() {
     return (
-      <Html lang="fr"> {/* Ajustez la langue si nécessaire */}
+      <Html>
         <Head />
         <body>
-          <ColorModeScript initialColorMode={theme.config.initialColorMode} />
+          {/* Initialize color mode */}
+          <ColorModeScript initialColorMode={theme.config?.initialColorMode} />
           <Main />
           <NextScript />
         </body>

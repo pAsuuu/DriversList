@@ -1,3 +1,5 @@
+// components/DriversList.js
+
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import {
@@ -30,11 +32,12 @@ import {
 } from '@chakra-ui/react';
 import { SearchIcon } from '@chakra-ui/icons';
 import { motion } from 'framer-motion';
-import Papa from 'papaparse';
 import { FaTwitter, FaWikipediaW, FaGlobe, FaInstagram } from 'react-icons/fa';
-import { FiFlag } from 'react-icons/fi';
 
-const DriversList = () => {
+// Déplacer MotionBox en dehors du composant pour éviter les problèmes de Hooks
+const MotionBox = motion(Box);
+
+const DriversList = ({ driversData }) => { // Utilisation de driversData passé en props
   const [drivers, setDrivers] = useState([]);
   const [filteredDrivers, setFilteredDrivers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -46,41 +49,48 @@ const DriversList = () => {
   // Fonction pour récupérer l'image du pilote depuis Wikipédia
   const fetchDriverImage = async (wikiUrl) => {
     try {
+      if (!wikiUrl) {
+        return '/default-image.png';
+      }
       const wikiTitle = wikiUrl.split('/').pop();
       const response = await axios.get(
         `https://en.wikipedia.org/w/api.php?action=query&format=json&prop=pageimages&titles=${wikiTitle}&pithumbsize=400&origin=*`
       );
       const pages = response.data.query.pages;
       const pageId = Object.keys(pages)[0];
-      return pages[pageId]?.thumbnail?.source || '/default-image.png';
+      const imageUrl = pages[pageId]?.thumbnail?.source || '/default-image.png';
+      console.log(`Image URL for ${wikiTitle}:`, imageUrl); // Ajouté pour le débogage
+      return imageUrl;
     } catch (error) {
       console.error("Erreur lors de la récupération de l'image :", error);
       return '/default-image.png'; // Image par défaut en cas d'erreur
     }
   };
 
-  // Fonction pour récupérer les pilotes via le fichier CSV
+  // Fonction pour récupérer les pilotes via les données passées en props
   useEffect(() => {
     const fetchDrivers = async () => {
       try {
-        const response = await axios.get('/data/drivers.csv');
-        const csvData = response.data;
+        // Filtrer les pilotes ayant les champs essentiels
+        const validDrivers = driversData.filter(
+          (driver) =>
+            driver.forename &&
+            driver.surname &&
+            driver.nationality &&
+            driver.driverId &&
+            driver.url
+        );
 
-        // Utilisation de PapaParse pour parser le CSV
-        Papa.parse(csvData, {
-          header: true,
-          complete: async (result) => {
-            const driversWithImages = await Promise.all(
-              result.data.map(async (driver) => {
-                const imageUrl = await fetchDriverImage(driver.url); // Récupérer l'image du pilote via Wikipédia
-                return { ...driver, imageUrl };
-              })
-            );
-            setDrivers(driversWithImages);
-            setFilteredDrivers(driversWithImages);
-            setIsLoading(false);
-          },
-        });
+        // Traiter les pilotes valides
+        const driversWithImages = await Promise.all(
+          validDrivers.map(async (driver, index) => {
+            const imageUrl = await fetchDriverImage(driver.url); // Récupérer l'image du pilote via Wikipédia
+            return { ...driver, imageUrl, id: index }; // Ajouter un identifiant unique
+          })
+        );
+        setDrivers(driversWithImages);
+        setFilteredDrivers(driversWithImages);
+        setIsLoading(false);
       } catch (error) {
         console.error('Erreur lors de la récupération des pilotes:', error);
         setIsLoading(false);
@@ -88,23 +98,20 @@ const DriversList = () => {
     };
 
     fetchDrivers();
-  }, []);
+  }, [driversData]);
 
-  // Fonction pour obtenir le drapeau SVG en fonction du code pays
+  // Fonction pour obtenir le drapeau en fonction du code pays
   const getFlagEmoji = (countryCode) => {
-    try {
-      return (
-        <Image
-          src={`https://flagcdn.com/h40/${countryCode.toLowerCase()}.png`}
-          alt={countryCode}
-          width="24px"
-          height="16px"
-          style={{ display: 'inline', marginLeft: '5px' }}
-        />
-      );
-    } catch {
-      return null;
-    }
+    if (!countryCode) return null;
+    return (
+      <Image
+        src={`https://flagcdn.com/h40/${countryCode.toLowerCase()}.png`}
+        alt={countryCode}
+        width="24px"
+        height="16px"
+        style={{ display: 'inline', marginLeft: '5px', maxWidth: '100%' }} // Ajout de maxWidth
+      />
+    );
   };
 
   // Mapping nationalité vers code pays
@@ -161,7 +168,7 @@ const DriversList = () => {
     onOpen();
   };
 
-  const MotionBox = motion(Box);
+  // Variables de style
   const bgColor = useColorModeValue('gray.800', 'gray.800');
   const cardBgColor = useColorModeValue('gray.700', 'gray.700');
   const textColor = useColorModeValue('white', 'white');
@@ -170,7 +177,7 @@ const DriversList = () => {
   const modalBgColor = useColorModeValue('gray.700', 'gray.700');
 
   return (
-    <Box py={8} px={4} maxW="1200px" mx="auto" minH="100vh" bg={bgColor} color={textColor}>
+    <Box py={8} px={4} maxW="1200px" mx="auto" minH="100vh" bg={bgColor} color={textColor} overflowX="hidden">
       <Heading as="h2" size="xl" mb={6} textAlign="center" color="brand.500">
         Liste des Pilotes de Formule 1
       </Heading>
@@ -193,7 +200,6 @@ const DriversList = () => {
         </InputGroup>
 
         <Select
-          placeholder="Filtrer par nationalité"
           value={nationalityFilter}
           onChange={handleNationalityFilter}
           maxW="200px"
@@ -201,11 +207,13 @@ const DriversList = () => {
           color={textColor}
           borderRadius="full"
         >
-          <option value="Toutes">Toutes les nationalités</option>
+          <option key="Toutes" value="Toutes">
+            Toutes les nationalités
+          </option>
           {Array.from(new Set(drivers.map((d) => d.nationality)))
             .sort()
-            .map((nationality) => (
-              <option key={nationality} value={nationality}>
+            .map((nationality, index) => (
+              <option key={`nationality-${index}`} value={nationality}>
                 {nationality}
               </option>
             ))}
@@ -220,7 +228,7 @@ const DriversList = () => {
         <Flex wrap="wrap" justify="center" gap={6}>
           {filteredDrivers.map((driver) => (
             <MotionBox
-              key={driver.driverId}
+              key={driver.id} // Utiliser un identifiant unique
               whileHover={{ y: -5 }}
               bg={cardBgColor}
               borderRadius="lg"
@@ -234,10 +242,11 @@ const DriversList = () => {
             >
               <Center mt={4}>
                 <Avatar
-                  size="2xl"
+                  size={{ base: 'xl', md: '2xl' }}
                   name={`${driver.forename} ${driver.surname}`}
                   src={driver.imageUrl || '/default-image.png'}
                   bg="gray.600"
+                  onError={(e) => { e.target.src = '/default-image.png'; }}
                 />
               </Center>
               <Box p={4} textAlign="center">
@@ -251,7 +260,7 @@ const DriversList = () => {
                   Nationalité : {driver.nationality}
                 </Text>
                 <Text fontSize="sm" color="gray.300">
-                  Numéro : {driver.permanentNumber || 'N/A'}
+                  Numéro : {driver.number || 'N/A'}
                 </Text>
               </Box>
             </MotionBox>
@@ -266,7 +275,14 @@ const DriversList = () => {
       {selectedDriver && (
         <Modal isOpen={isOpen} onClose={onClose} size="2xl" isCentered motionPreset="scale">
           <ModalOverlay />
-          <ModalContent borderRadius="lg" overflow="hidden" bg={modalBgColor} color={textColor}>
+          <ModalContent
+            borderRadius="lg"
+            overflow="hidden"
+            bg={modalBgColor}
+            color={textColor}
+            maxW="90vw" // Limiter la largeur à 90% de la vue
+            width={{ base: '90vw', md: '80vw', lg: '60vw' }} // Largeur réactive
+          >
             {/* Section de couverture avec le logo de l'équipe */}
             <Box bgColor="blackAlpha.700" p={4}>
               {selectedDriver.teamLogo && (
@@ -283,12 +299,13 @@ const DriversList = () => {
             <Flex direction={{ base: 'column', md: 'row' }} p={6}>
               {/* Avatar du pilote */}
               <Avatar
-                size="2xl"
+                size={{ base: '2xl', md: '2xl' }}
                 name={`${selectedDriver.forename} ${selectedDriver.surname}`}
                 src={selectedDriver.imageUrl || '/default-image.png'}
                 bg="gray.600"
                 mr={{ md: 6 }}
                 mb={{ base: 6, md: 0 }}
+                onError={(e) => { e.target.src = '/default-image.png'; }}
               />
 
               {/* Informations détaillées */}
@@ -304,15 +321,19 @@ const DriversList = () => {
                   </Box>
                   <Box>
                     <Text fontWeight="bold">Date de naissance :</Text>
-                    <Text>{new Date(selectedDriver.dob).toLocaleDateString()}</Text>
+                    <Text>
+                      {selectedDriver.dob
+                        ? new Date(selectedDriver.dob).toLocaleDateString()
+                        : 'N/A'}
+                    </Text>
                   </Box>
                   <Box>
                     <Text fontWeight="bold">Code Pilote :</Text>
                     <Text>{selectedDriver.code || 'N/A'}</Text>
                   </Box>
                   <Box>
-                    <Text fontWeight="bold">Numéro Permanent :</Text>
-                    <Text>{selectedDriver.permanentNumber || 'N/A'}</Text>
+                    <Text fontWeight="bold">Numéro :</Text>
+                    <Text>{selectedDriver.number || 'N/A'}</Text>
                   </Box>
                   <Box>
                     <Text fontWeight="bold">Équipe :</Text>
@@ -378,7 +399,14 @@ const DriversList = () => {
                 Statistiques de Carrière
               </Heading>
               <SimpleGrid columns={{ base: 2, md: 4 }} spacing={4}>
-                <Flex align="center" justify="center" direction="column" p={4} bg={useColorModeValue('gray.600', 'gray.600')} borderRadius="md">
+                <Flex
+                  align="center"
+                  justify="center"
+                  direction="column"
+                  p={4}
+                  bg={useColorModeValue('gray.600', 'gray.600')}
+                  borderRadius="md"
+                >
                   <Badge colorScheme="green" mb={2}>
                     Victoires
                   </Badge>
@@ -386,7 +414,14 @@ const DriversList = () => {
                     {selectedDriver.wins || '0'}
                   </Text>
                 </Flex>
-                <Flex align="center" justify="center" direction="column" p={4} bg={useColorModeValue('gray.600', 'gray.600')} borderRadius="md">
+                <Flex
+                  align="center"
+                  justify="center"
+                  direction="column"
+                  p={4}
+                  bg={useColorModeValue('gray.600', 'gray.600')}
+                  borderRadius="md"
+                >
                   <Badge colorScheme="orange" mb={2}>
                     Podiums
                   </Badge>
@@ -394,7 +429,14 @@ const DriversList = () => {
                     {selectedDriver.podiums || '0'}
                   </Text>
                 </Flex>
-                <Flex align="center" justify="center" direction="column" p={4} bg={useColorModeValue('gray.600', 'gray.600')} borderRadius="md">
+                <Flex
+                  align="center"
+                  justify="center"
+                  direction="column"
+                  p={4}
+                  bg={useColorModeValue('gray.600', 'gray.600')}
+                  borderRadius="md"
+                >
                   <Badge colorScheme="purple" mb={2}>
                     Championnats
                   </Badge>
@@ -402,7 +444,14 @@ const DriversList = () => {
                     {selectedDriver.championships || '0'}
                   </Text>
                 </Flex>
-                <Flex align="center" justify="center" direction="column" p={4} bg={useColorModeValue('gray.600', 'gray.600')} borderRadius="md">
+                <Flex
+                  align="center"
+                  justify="center"
+                  direction="column"
+                  p={4}
+                  bg={useColorModeValue('gray.600', 'gray.600')}
+                  borderRadius="md"
+                >
                   <Badge colorScheme="blue" mb={2}>
                     Courses
                   </Badge>

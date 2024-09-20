@@ -16,7 +16,6 @@ import {
   Tooltip,
   Grid,
   GridItem,
-  Spacer,
 } from '@chakra-ui/react';
 import {
   FaInstagram,
@@ -39,6 +38,7 @@ import {
   Bar,
 } from 'recharts';
 
+// Définir MotionBox en dehors du composant pour éviter les problèmes de Hooks
 const MotionBox = motion(Box);
 
 const StatsPanel = () => {
@@ -105,24 +105,24 @@ const StatsPanel = () => {
   return (
     <MotionBox
       bg={cardBg}
-      p={8} // Augmentation du padding pour plus d'espace
+      p={8}
       rounded="2xl"
       shadow="xl"
-      maxW="900px" // Augmentation de la largeur maximale
+      maxW="900px"
       w="100%"
       mx="auto"
       initial={{ opacity: 0, y: -30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8 }}
     >
-      {/* Titre "Le pilote à la une" en jaune avec la même police et taille que les autres titres */}
+      {/* Titre "Le pilote à la une" */}
       <Heading
         as="h1"
-        size="lg" // Assure que la taille est similaire à d'autres titres
-        color={titleColor} // Couleur jaune
-        mb={6} // Augmentation de la marge inférieure
+        size="lg"
+        color={titleColor}
+        mb={6}
         textAlign="center"
-        fontFamily="Montserrat, sans-serif" // Assure l'utilisation de la même police
+        fontFamily="Montserrat, sans-serif"
       >
         Le pilote à la une
       </Heading>
@@ -130,18 +130,26 @@ const StatsPanel = () => {
       {/* En-tête avec image et informations de base */}
       <Flex direction={{ base: 'column', md: 'row' }} align="center" mb={8}>
         <Image
-          boxSize="180px" // Taille augmentée de l'image
-          src="verstappen.jpg" // Chemin de l'image locale
+          boxSize={{ base: '150px', md: '180px' }}
+          src="/verstappen.jpg" // Assurez-vous que le chemin est correct
           alt="Max Verstappen"
           borderRadius="full"
           mr={{ base: 0, md: 12 }}
           mb={{ base: 6, md: 0 }}
+          objectFit="cover"
         />
-        <VStack align="start" spacing={4}>
-          <Heading as="h2" size="xl" color={headingColor} fontFamily="Montserrat, sans-serif">
+        <VStack align="start" spacing={4} w="100%">
+          <Heading
+            as="h2"
+            size="xl"
+            color={headingColor}
+            fontFamily="Montserrat, sans-serif"
+            textAlign={{ base: 'center', md: 'left' }}
+            w="100%"
+          >
             Max Verstappen
           </Heading>
-          <HStack spacing={3}>
+          <HStack spacing={3} flexWrap="wrap" justify={{ base: 'center', md: 'flex-start' }}>
             <Badge colorScheme={badgeColors.wins} px={3} py={1} borderRadius="md">
               {driverStats.totalWins} Victoires
             </Badge>
@@ -158,19 +166,28 @@ const StatsPanel = () => {
               {driverStats.fastestLaps} Tours Rapides
             </Badge>
           </HStack>
-          <Text fontSize="md" color={textColor}>
-            <strong>Équipe :</strong> Red Bull Racing<br />
-            <Flex align="center">
-              <strong>Date de naissance :</strong>&nbsp;30 Septembre 1997
-              <Box ml={2}>
-                <FaBirthdayCake color="yellow.500" />
-              </Box>
+
+          {/* Informations détaillées */}
+          <Box fontSize="md" color={textColor} textAlign={{ base: 'center', md: 'left' }}>
+            <Text>
+              <strong>Équipe :</strong> Red Bull Racing
+            </Text>
+            <Flex align="center" justify={{ base: 'center', md: 'flex-start' }}>
+              <Text mb={0}>
+                <strong>Date de naissance :</strong>&nbsp;30 Septembre 1997
+              </Text>
+              <FaBirthdayCake color="yellow.500" style={{ marginLeft: '8px' }} />
             </Flex>
-            <strong>Âge :</strong> 26<br />
-            <strong>Nationalité :</strong> Pays-Bas
-          </Text>
+            <Text>
+              <strong>Âge :</strong> 26
+            </Text>
+            <Text>
+              <strong>Nationalité :</strong> Pays-Bas
+            </Text>
+          </Box>
+
           {/* Liens vers les réseaux sociaux */}
-          <HStack spacing={4} mt={4}>
+          <HStack spacing={4} mt={4} justify={{ base: 'center', md: 'flex-start' }}>
             <Tooltip label="Instagram" aria-label="Instagram">
               <IconButton
                 as={Link}
@@ -178,7 +195,7 @@ const StatsPanel = () => {
                 aria-label="Instagram"
                 icon={<FaInstagram />}
                 variant="ghost"
-                size="lg" // Uniformisation de la taille
+                size="lg"
                 isExternal
                 color="teal.500"
                 _hover={{ bg: 'teal.100' }}
@@ -240,27 +257,30 @@ const StatsPanel = () => {
         </VStack>
       </Flex>
 
-      {/* Statistiques Clés sans Icônes */}
+      {/* Statistiques Clés */}
       <Box mb={8}>
         <Heading as="h3" size="md" mb={6} color={headingColor} fontFamily="Montserrat, sans-serif">
           Statistiques Clés
         </Heading>
-        <Grid templateColumns={{ base: '1fr', md: 'repeat(5, 1fr)' }} gap={6}>
+        <Grid
+          templateColumns={{ base: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(5, 1fr)' }}
+          gap={6}
+        >
           {/* Victoires */}
           <GridItem>
             <Box
-              h="150px" // Hauteur fixe
-              p={6} // Padding pour l'espacement interne
+              h="150px"
+              p={6}
               bg={useColorModeValue('gray.50', 'gray.700')}
               rounded="lg"
               shadow="md"
               textAlign="center"
-              display="flex" // Utilisation de Flexbox pour centrer le contenu
+              display="flex"
               flexDirection="column"
               alignItems="center"
               justifyContent="center"
               transition="transform 0.2s"
-              _hover={{ transform: 'translateY(-5px)', shadow: 'lg' }} // Effet de survol
+              _hover={{ transform: 'translateY(-5px)', shadow: 'lg' }}
             >
               <Text fontSize="3xl" fontWeight="bold" color={badgeColors.wins}>
                 {driverStats.totalWins}
@@ -374,10 +394,22 @@ const StatsPanel = () => {
         <Heading as="h3" size="md" mb={6} color={headingColor} fontFamily="Montserrat, sans-serif">
           Performances par Saison
         </Heading>
-        <Flex direction={{ base: 'column', md: 'row' }} gap={6}>
+        <Flex direction={{ base: 'column', lg: 'row' }} gap={6}>
           {/* Graphique des Points par Saison */}
-          <Box flex="1" bg={useColorModeValue('gray.50', 'gray.700')} p={6} rounded="lg" shadow="md">
-            <Text fontSize="lg" mb={4} color={textColor} textAlign="center" fontFamily="Roboto, sans-serif">
+          <Box
+            flex="1"
+            bg={useColorModeValue('gray.50', 'gray.700')}
+            p={6}
+            rounded="lg"
+            shadow="md"
+          >
+            <Text
+              fontSize="lg"
+              mb={4}
+              color={textColor}
+              textAlign="center"
+              fontFamily="Roboto, sans-serif"
+            >
               Points par Saison
             </Text>
             <ResponsiveContainer width="100%" height={250}>
@@ -391,8 +423,20 @@ const StatsPanel = () => {
             </ResponsiveContainer>
           </Box>
           {/* Graphique des Victoires par Saison */}
-          <Box flex="1" bg={useColorModeValue('gray.50', 'gray.700')} p={6} rounded="lg" shadow="md">
-            <Text fontSize="lg" mb={4} color={textColor} textAlign="center" fontFamily="Roboto, sans-serif">
+          <Box
+            flex="1"
+            bg={useColorModeValue('gray.50', 'gray.700')}
+            p={6}
+            rounded="lg"
+            shadow="md"
+          >
+            <Text
+              fontSize="lg"
+              mb={4}
+              color={textColor}
+              textAlign="center"
+              fontFamily="Roboto, sans-serif"
+            >
               Victoires par Saison
             </Text>
             <ResponsiveContainer width="100%" height={250}>
@@ -406,8 +450,20 @@ const StatsPanel = () => {
             </ResponsiveContainer>
           </Box>
           {/* Graphique des Podiums par Saison */}
-          <Box flex="1" bg={useColorModeValue('gray.50', 'gray.700')} p={6} rounded="lg" shadow="md">
-            <Text fontSize="lg" mb={4} color={textColor} textAlign="center" fontFamily="Roboto, sans-serif">
+          <Box
+            flex="1"
+            bg={useColorModeValue('gray.50', 'gray.700')}
+            p={6}
+            rounded="lg"
+            shadow="md"
+          >
+            <Text
+              fontSize="lg"
+              mb={4}
+              color={textColor}
+              textAlign="center"
+              fontFamily="Roboto, sans-serif"
+            >
               Podiums par Saison
             </Text>
             <ResponsiveContainer width="100%" height={250}>
@@ -416,7 +472,6 @@ const StatsPanel = () => {
                 <YAxis stroke={textColor} allowDecimals={false} />
                 <RechartsTooltip />
                 <Legend verticalAlign="top" height={36} />
-                {/* Changer la couleur du graphique des Podiums en violet */}
                 <Bar dataKey="podiums" fill="#9F7AEA" name="Podiums" />
               </BarChart>
             </ResponsiveContainer>
